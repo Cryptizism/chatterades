@@ -1,4 +1,3 @@
-import "../App.css";
 import { useState, useEffect, useRef } from "react";
 import tmi from "tmi.js";
 import { useCookies } from "react-cookie";
