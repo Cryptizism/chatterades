@@ -13,3 +13,7 @@ body {
     color-scheme: dark;
   }
 }
+
+button {
+  @apply hover:cursor-pointer hover:bg-gray-800 bg-gray-700;
+}

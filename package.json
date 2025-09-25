@@ -13,8 +13,10 @@
     "@react-router/serve": "^7.7.1",
     "isbot": "^5.1.27",
     "react": "^19.1.0",
+    "react-cookie": "^8.0.1",
     "react-dom": "^19.1.0",
-    "react-router": "^7.7.1"
+    "react-router": "^7.7.1",
+    "tmi.js": "^1.8.5"
   },
   "devDependencies": {
     "@react-router/dev": "^7.7.1",
@@ -22,6 +24,7 @@
     "@types/node": "^20",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
+    "@types/tmi.js": "^1.8.6",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.8.3",
     "vite": "^6.3.3",
