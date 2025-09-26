@@ -32,6 +32,8 @@ const CharadesEditor = ({
 
     return (
         <div className="py-6 w-96 mx-auto">
+            <h2 className="text-left">Edit Charades</h2>
+            <p className="text-left text-gray-500 font-light mb-2">All categories will be played on, this does not select specific categories just lets you edit them</p>
             <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as Category)}
