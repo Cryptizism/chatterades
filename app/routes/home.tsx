@@ -108,7 +108,6 @@ const App = () => {
             });
             setScreen(prev => GameState.NextRound);
             setPreviousWinner(prev => username);
-            // play a sound
             const audio = new Audio("/correct.mp3");
             audio.volume = 0.5;
             audio.play();
@@ -277,7 +276,7 @@ const App = () => {
             setMessages([]);
             setPreviousWinner(null);
             setCharade(undefined);
-            setGameDetails({ round: 0, totalRounds: 5 });
+            setGameDetails(prev => ({ ...prev, round: 0 }));
           }} className="bg-gray-700 text-white p-2 rounded mt-4">
             Return Home
           </button>
