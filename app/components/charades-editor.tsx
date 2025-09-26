@@ -32,8 +32,8 @@ const CharadesEditor = ({
 
     return (
         <div className="py-6 w-96 mx-auto">
-            <h2 className="text-left">Edit Charades</h2>
-            <p className="text-left text-gray-500 font-light mb-2">All categories will be played on, this does not select specific categories just lets you edit them</p>
+            <h2 className="text-left">Edit Charades by Category</h2>
+            <p className="text-left text-gray-500 font-light mb-2">All categories will be played on, <span className="underline">this does not select specific categories</span> just lets you edit them</p>
             <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as Category)}
@@ -43,7 +43,7 @@ const CharadesEditor = ({
                     Select Category
                 </option>
                 <option value="" disabled className="text-red-500 font-bold underline">
-                    DO NOT SHOW THIS ON STREAM AS IT WILL SPOIL THE GAME
+                    DO NOT SELECT A CATEGORY AND SHOW ON STREAM AS IT WILL SPOIL THE GAME
                 </option>
                 {(Object.keys(charades) as Category[]).map((_category) => (
                     <option key={_category} value={_category} className="text-black">

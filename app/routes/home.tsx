@@ -5,16 +5,7 @@ import ChatBox from "~/components/chatbox";
 import CharadesEditor from "~/components/charades-editor";
 
 export const initialCharades = {
-  Activity: ["streaming", "pooping", "coding", "dancing", "crying", "singing", "bowling", "eating", "flying", "gaming", "painting", "fishing", "hiking", "driving", "shopping", "cooking", "swimming", "reading", "skiing", "arguing", "surfing", "consoling", "attacking", "arresting", "sliding", "lying", "mining", "reporting", "crashing out"],
-  Animal: ["elephant", "giraffe", "kangaroo", "dolphin", "penguin", "dog", "cat", "rabbit", "frog", "spider", "snake", "fish", "fox", "monkey", "turtle"],
-  Career: ["doctor", "teacher", "chef", "artist", "musician", "cleaner", "police", "photographer", "gymnast", "pilot", "firefighter", "content creator", "farmer", "plumber", "bodyguard", "mechanic"],
-  Object: ["bicycle", "laptop", "guitar", "camera", "backpack", "phone", "book", "watch", "car", "wrecking ball", "microphone", "suitcase", "piano", "candle", "knife", "drum"],
-  Movie: ["titanic", "spiderman", "superman", "lion king", "the matrix", "frozen", "forrest gump", "shawshank redemption", "joker", "alvin and the chimpmunks", "wall-e", "the dark knight", "toy story", "lego movie"],
-  "TV Show": ["the office", "breaking bad", "doctor who", "squid game", "the walking dead", "big bang theory", "game of thrones"],
-  Person: ["mr beast", "ludwig", "santa", "tooth fairy", "harry potter", "michael jackson", "usain bolt", "cristiano ronaldo", "albert einstein", "taylor swift", "neil armstrong"],
-  Place: ["antarctica", "beach"],
-  Song: ["headlock", "never gonna give you up", "pretty girl", "skyfall", "blinding lights", "shake it off", "astronaut in the ocean", "bad guy", "watermelon sugar", "drivers license", "happy", "call me maybe", "hello", "firework", "all star", "old town road"],
-  Game: ["minecraft", "fortnite", "among us", "league of legends", "chess", "monopoly", "poker", "fall guys", "animal crossing", "overwatch"]
+  Activity: ["the test in here"]
 }
 
 enum GameState {
@@ -32,6 +23,8 @@ export type ChatMessage = {
   colour: string;
   badge?: string;
 };
+
+const stopWords = ["the", "is", "in", "and", "to", "a", "of", "it", "that", "i", "you", "he", "she", "they", "we", "on", "for", "with", "as", "was", "at", "by", "an"];
 
 const App = () => {
   const [charades, setCharades] = useState<Record<string, string[]>>(initialCharades);
@@ -96,7 +89,7 @@ const App = () => {
         if (screenRef.current === GameState.Home) {
           setMessages((prevMessages) => [...prevMessages, { username, message, colour }]);
         } else if (screenRef.current === GameState.InGame) {
-          if (charadeRef.current && message.toLowerCase().includes(charadeRef.current.word!.toLowerCase())) {
+          if (charadeRef.current && charadeRef.current.word && normalise(message).includes(normalise(charadeRef.current.word))) {
             setChatters((prevChatters) => {
               if (prevChatters[username]) {
                 const updatedScore = prevChatters[username].score + 1;
@@ -106,11 +99,23 @@ const App = () => {
             });
             setScreen(prev => GameState.NextRound);
             setPreviousWinner(prev => username);
+            // play a sound
+            const audio = new Audio("/correct.mp3");
+            audio.volume = 0.5;
+            audio.play();
           }
         }
       }
     });
   };
+
+  const normalise = (text: string): string => {
+    return text
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(word => word && !stopWords.includes(word))
+      .join(" ");
+  }
 
   const getRandomWord = () => {
     const categories = Object.keys(charades);
@@ -153,7 +158,7 @@ const App = () => {
   }, []);
 
   return (
-    <div className="App bg-gray-900 min-h-screen text-white flex flex-col items-center justify-center">
+    <div className="App bg-gray-900 min-h-[calc(100vh-60px)] text-white flex flex-col items-center justify-center">
       {screen === GameState.Home && (
         channel ? (
           <div className="mb-4">
@@ -196,12 +201,15 @@ const App = () => {
       {screen === GameState.NextRound && (
         <div className="flex items-center gap-2 flex-col">
           {previousWinner && (
-            <h3 className="text-xl mb-2">Previous Round Winner: <strong style={{ color: chatters[previousWinner]?.colour || "white" }}>{previousWinner}</strong></h3>
+            <>
+              <h3 className="text-xl">Round Winner: <strong style={{ color: chatters[previousWinner]?.colour || "white" }}>{previousWinner}</strong></h3>
+              <h3 className="text-xl mb-2">Word: <strong>{charade?.word}</strong></h3>
+            </>
           )}
           {gameDetails.round < gameDetails.totalRounds ? (
             <>
               <h2 className="text-2xl mb-2">Get ready for Round {gameDetails.round + 1} of {gameDetails.totalRounds}!</h2>
-              <p className="text-gray-400 font-light">Before clicking next round you need to hide your screen and go fullscreen</p>
+              <p className="text-gray-400 font-light text-center">Before clicking next round you need to hide your screen and go fullscreen.<br />You can show this screen though :D</p>
             </>
           ) : (
             <h2 className="text-2xl mb-2">Game over!</h2>

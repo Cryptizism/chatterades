@@ -39,6 +39,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <ScrollRestoration />
           <Scripts />
         </CookiesProvider>
+        <footer className="text-center p-4 text-gray-500 font-light">
+          Another Stupid Cryptizism project | Check out <a href="https://chatterdle.cryptizism.com" className="underline hover:text-blue-500">Chatterdle</a> & <a href="https://tiers.cryptizism.com" className="underline hover:text-blue-500">Dynamic Tier List</a> | View on <a href="https://github.com/Cryptizism/chatterades" className="underline hover:text-blue-500">GitHub</a>
+        </footer>
       </body>
     </html>
   );
