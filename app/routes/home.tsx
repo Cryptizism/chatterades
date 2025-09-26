@@ -5,7 +5,16 @@ import ChatBox from "~/components/chatbox";
 import CharadesEditor from "~/components/charades-editor";
 
 export const initialCharades = {
-  Activity: ["the test in here"]
+  Activity: ["streaming", "pooping", "coding", "dancing", "crying", "singing", "bowling", "eating", "flying", "gaming", "painting", "fishing", "hiking", "driving", "shopping", "cooking", "swimming", "reading", "skiing", "arguing", "surfing", "consoling", "attacking", "arresting", "sliding", "lying", "mining", "reporting", "crashing out"],
+  Animal: ["elephant", "giraffe", "kangaroo", "dolphin", "penguin", "dog", "cat", "rabbit", "frog", "spider", "snake", "fish", "fox", "monkey", "turtle"],
+  Career: ["doctor", "teacher", "chef", "artist", "musician", "cleaner", "police", "photographer", "gymnast", "pilot", "firefighter", "content creator", "farmer", "plumber", "bodyguard", "mechanic"],
+  Object: ["bicycle", "laptop", "guitar", "camera", "backpack", "phone", "book", "watch", "car", "wrecking ball", "microphone", "suitcase", "piano", "candle", "knife", "drum"],
+  Movie: ["titanic", "spiderman", "superman", "lion king", "the matrix", "frozen", "forrest gump", "shawshank redemption", "joker", "alvin and the chimpmunks", "wall-e", "the dark knight", "toy story", "lego movie"],
+  "TV Show": ["the office", "breaking bad", "doctor who", "squid game", "the walking dead", "big bang theory", "game of thrones"],
+  Person: ["mr beast", "ludwig", "santa", "tooth fairy", "harry potter", "michael jackson", "usain bolt", "cristiano ronaldo", "albert einstein", "taylor swift", "neil armstrong"],
+  Place: ["antarctica", "beach"],
+  Song: ["headlock", "never gonna give you up", "pretty girl", "skyfall", "blinding lights", "shake it off", "astronaut in the ocean", "bad guy", "watermelon sugar", "drivers license", "happy", "call me maybe", "hello", "firework", "all star", "old town road"],
+  Game: ["minecraft", "fortnite", "among us", "league of legends", "chess", "monopoly", "poker", "fall guys", "animal crossing", "overwatch"]
 }
 
 enum GameState {
