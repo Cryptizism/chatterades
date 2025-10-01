@@ -3,9 +3,14 @@ import tmi from "tmi.js";
 import { useCookies } from "react-cookie";
 import ChatBox from "~/components/chatbox";
 import CharadesEditor from "~/components/charades-editor";
+import levenshtein from "js-levenshtein"
 
-const version = "1.1.0";
+const version = "1.2.0";
 const changelog = {
+  "1.2.0": {
+    changes : ["Added game types", "Added better matching for misspellings"],
+    askReset: false
+  },
   "1.1.0": {
     changes : ["Added versioning", "Added more charades", "Removed puncuation from answers so 'it's' and 'its' are the same", "Other nerdy stuff"],
     askReset: false
@@ -36,6 +41,11 @@ enum GameState {
   GameOver
 }
 
+enum GameType {
+  FirstCome,
+  Every
+}
+
 type ChatterRecord = Record<string, { mod: boolean; subscriber: boolean; colour: string; score: number }>;
 
 export type ChatMessage = {
@@ -57,17 +67,29 @@ const App = () => {
   const [chatters, setChatters] = useState<ChatterRecord>({});
   const [previousWinner, setPreviousWinner] = useState<string | null>(null);
   const [charade, setCharade] = useState<{ category: string; word: string | null }>();
-  const [gameDetails, setGameDetails] = useState<{ round: number; totalRounds: number; }>(() => {
+  const [gameDetails, setGameDetails] = useState<{ round: number; totalRounds: number; guessTime?: number | null }>(() => {
     const storedRounds = localStorage.getItem("rounds");
     return { round: 0, totalRounds: storedRounds ? Number(storedRounds) : 10 };
   });
   const [screen, setScreen] = useState<GameState>(GameState.Home);
+  const [gameType, setGameType] = useState<GameType>(() => {
+    const storedGameType = Number(localStorage.getItem("gameType"));
+    return storedGameType !== null ? storedGameType : GameType.Every;
+  });
 
   const [cookies, setCookies] = useCookies(["user", "version"]);
 
   const userInputRef = useRef<HTMLInputElement | null>(null);
   const screenRef = useRef(screen);
   const charadeRef = useRef(charade);
+  const gameTypeRef = useRef(gameType)
+
+  const roundTime = 15;
+
+  useEffect(() => {
+    gameTypeRef.current = gameType;
+    localStorage.setItem("gameType", String(Number(gameType)))
+  }, [gameType])
 
   useEffect(() => {
     screenRef.current = screen;
@@ -116,23 +138,75 @@ const App = () => {
         if (screenRef.current === GameState.Home) {
           setMessages((prevMessages) => [...prevMessages, { username, message, colour }]);
         } else if (screenRef.current === GameState.InGame) {
-          if (charadeRef.current && charadeRef.current.word && normalise(message).includes(normalise(charadeRef.current.word))) {
-            setChatters((prevChatters) => {
-              if (prevChatters[username]) {
-                const updatedScore = prevChatters[username].score + 1;
-                return { ...prevChatters, [username]: { ...prevChatters[username], score: updatedScore } };
-              }
-              return prevChatters;
-            });
-            setScreen(prev => GameState.NextRound);
-            setPreviousWinner(prev => username);
-            const audio = new Audio("/correct.mp3");
-            audio.volume = 0.5;
-            audio.play();
+          if (charadeRef.current && charadeRef.current.word && matchCharade(message)) {
+            scorePoint(username);
           }
         }
       }
     });
+  };
+
+  const updateChatterScore = (username: string, score: number) => {
+    setChatters((prevChatters) => {
+      if (prevChatters[username]) {
+        const updatedScore = prevChatters[username].score + score;
+        return { ...prevChatters, [username]: { ...prevChatters[username], score: updatedScore } };
+      }
+      return prevChatters;
+    });
+  }
+
+  const winnerNextRound = (username: string, score: number) => {
+    updateChatterScore(username, score)
+    setScreen(prev => GameState.NextRound);
+    setPreviousWinner(prev => username);
+    const audio = new Audio("/correct.mp3");
+    audio.volume = 0.5;
+    audio.play();
+  }
+  
+  const scorePoint = (username: string) => {
+    switch (gameTypeRef.current) {
+      case GameType.FirstCome:
+        winnerNextRound(username, 1);
+        return;
+      case GameType.Every:
+        if (gameDetails.guessTime){
+          const timeInSecondsElapsed = (Date.now() - gameDetails.guessTime) / 1000;
+          const score = roundTime*100  * (1 - Math.log(1 + timeInSecondsElapsed) / Math.log(1 + roundTime));
+          updateChatterScore(username, Math.floor(score));
+        } else {
+          gameDetails.guessTime = Date.now();
+          setTimeout(() => {
+            gameDetails.guessTime = null;
+            winnerNextRound(username, roundTime*100);
+          }, roundTime * 1000);
+        }
+        return;
+      }
+    }
+
+  const fuzzySubstringMatch = (message: string, charade: string, threshold: number) => {
+    for (let i = 0; i <= message.length - charade.length; i++) {
+      const window = message.substring(i, i + charade.length);
+      if (levenshtein(window, charade) <= threshold) return true;
+    }
+    return false;
+  }
+
+  const matchCharade = (message: string) => {
+    if (!charadeRef.current || !charadeRef.current.word) return false;
+
+    const normalisedCharade = normalise(charadeRef.current.word);
+    const normalisedMessage = normalise(message);
+
+    if (normalisedCharade.length === 0 || normalisedMessage.length === 0) return false;
+
+    if (normalisedMessage.includes(normalisedCharade)){
+      return true;
+    }
+
+    return fuzzySubstringMatch(normalisedMessage, normalisedCharade, 4);
   };
 
   const normalise = (text: string): string => {
@@ -220,6 +294,20 @@ const App = () => {
                     <button onClick={() => setCharades(initialCharades)} className="!bg-red-600 !hover:bg-red-500 text-white p-2 rounded">
                       Reset All Charades
                     </button>
+                    <select
+                      className="p-2 border rounded w-full text-sm"
+                      value={gameType}
+                      onChange={(e) => {
+                        setGameType(Number(e.target.value) as GameType)
+                      }}
+                    >
+                      <option value={GameType.FirstCome} className="text-black">
+                        First Come - only the first correct guesser earns points
+                      </option>
+                      <option value={GameType.Every} className="text-black">
+                        Staggered - everyone earns points within {roundTime}s (less over time)
+                      </option>
+                    </select>
                   </div>
                   <CharadesEditor charades={charades} setCharades={setCharades} />
                 </div>
