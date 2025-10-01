@@ -76,6 +76,7 @@ const App = () => {
     const storedGameType = Number(localStorage.getItem("gameType"));
     return storedGameType !== null ? storedGameType : GameType.Every;
   });
+  const [guessed, setGuessed] = useState<String[]>([]);
 
   const [cookies, setCookies] = useCookies(["user", "version"]);
 
@@ -83,6 +84,7 @@ const App = () => {
   const screenRef = useRef(screen);
   const charadeRef = useRef(charade);
   const gameTypeRef = useRef(gameType)
+  const guessedRef = useRef(guessed);
 
   const roundTime = 15;
 
@@ -90,6 +92,10 @@ const App = () => {
     gameTypeRef.current = gameType;
     localStorage.setItem("gameType", String(Number(gameType)))
   }, [gameType])
+
+  useEffect(() => {
+    guessedRef.current = guessed;
+  }, [guessed])
 
   useEffect(() => {
     screenRef.current = screen;
@@ -138,7 +144,7 @@ const App = () => {
         if (screenRef.current === GameState.Home) {
           setMessages((prevMessages) => [...prevMessages, { username, message, colour }]);
         } else if (screenRef.current === GameState.InGame) {
-          if (charadeRef.current && charadeRef.current.word && matchCharade(message)) {
+          if (charadeRef.current && charadeRef.current.word /*&& matchCharade(message)*/) {
             scorePoint(username);
           }
         }
@@ -171,15 +177,17 @@ const App = () => {
         winnerNextRound(username, 1);
         return;
       case GameType.Every:
+        if(guessedRef.current.includes(username)) return;
+        setGuessed(prev => [...prev, username])
         if (gameDetails.guessTime){
           const timeInSecondsElapsed = (Date.now() - gameDetails.guessTime) / 1000;
-          const score = roundTime*100  * (1 - Math.log(1 + timeInSecondsElapsed) / Math.log(1 + roundTime));
+          const score = roundTime * 100  * (1 - Math.log(1 + timeInSecondsElapsed) / Math.log(1 + roundTime));
           updateChatterScore(username, Math.floor(score));
         } else {
           gameDetails.guessTime = Date.now();
           setTimeout(() => {
             gameDetails.guessTime = null;
-            winnerNextRound(username, roundTime*100);
+            winnerNextRound(username, roundTime * 100);
           }, roundTime * 1000);
         }
         return;
