@@ -4,18 +4,30 @@ import { useCookies } from "react-cookie";
 import ChatBox from "~/components/chatbox";
 import CharadesEditor from "~/components/charades-editor";
 
+const version = "1.1.0";
+const changelog = {
+  "1.1.0": {
+    changes : ["Added versioning", "Added more charades", "Removed puncuation from answers so 'it's' and 'its' are the same", "Other nerdy stuff"],
+    askReset: false
+  },
+  "1.0.0": {
+    changes: ["Initial release"],
+    askReset: false
+  }
+};
+
 export const initialCharades = {
-  Activity: ["streaming", "pooping", "coding", "dancing", "crying", "singing", "bowling", "eating", "flying", "gaming", "painting", "fishing", "hiking", "driving", "shopping", "cooking", "swimming", "reading", "skiing", "arguing", "surfing", "consoling", "attacking", "arresting", "sliding", "lying", "mining", "reporting", "crashing out"],
-  Animal: ["elephant", "giraffe", "kangaroo", "dolphin", "penguin", "dog", "cat", "rabbit", "frog", "spider", "snake", "fish", "fox", "monkey", "turtle"],
-  Career: ["doctor", "teacher", "chef", "artist", "musician", "cleaner", "police", "photographer", "gymnast", "pilot", "firefighter", "content creator", "farmer", "plumber", "bodyguard", "mechanic"],
-  Object: ["bicycle", "laptop", "guitar", "camera", "backpack", "phone", "book", "watch", "car", "wrecking ball", "microphone", "suitcase", "piano", "candle", "knife", "drum"],
-  Movie: ["titanic", "spiderman", "superman", "lion king", "the matrix", "frozen", "forrest gump", "shawshank redemption", "joker", "alvin and the chimpmunks", "wall-e", "the dark knight", "toy story", "lego movie"],
-  "TV Show": ["the office", "breaking bad", "doctor who", "squid game", "the walking dead", "big bang theory", "game of thrones"],
-  Person: ["mr beast", "ludwig", "santa", "tooth fairy", "harry potter", "michael jackson", "usain bolt", "cristiano ronaldo", "albert einstein", "taylor swift", "neil armstrong"],
-  Place: ["antarctica", "beach"],
-  Song: ["headlock", "never gonna give you up", "pretty girl", "skyfall", "blinding lights", "shake it off", "astronaut in the ocean", "bad guy", "watermelon sugar", "drivers license", "happy", "call me maybe", "hello", "firework", "all star", "old town road"],
-  Game: ["minecraft", "fortnite", "among us", "league of legends", "chess", "monopoly", "poker", "fall guys", "animal crossing", "overwatch"]
-}
+  Activity: ["streaming", "pooping", "coding", "dancing", "crying", "singing", "bowling", "eating", "flying", "gaming", "painting", "fishing", "hiking", "driving", "shopping", "cooking", "swimming", "reading", "skiing", "arguing", "surfing", "consoling", "attacking", "arresting", "sliding", "lying", "mining", "reporting", "crashing out", "meditating", "getting fired"],
+  Animal: ["elephant", "giraffe", "kangaroo", "dolphin", "penguin", "dog", "cat", "rabbit", "frog", "spider", "snake", "fish", "fox", "monkey", "turtle", "pigeon", "seagull", "owl", "rat", "bee", "turkey", "crab", "squid", "octopus", "crocodile", "goat", "sloth", "seal", "duck"],
+  Career: ["doctor", "teacher", "chef", "artist", "musician", "cleaner", "police", "photographer", "gymnast", "pilot", "firefighter", "content creator", "farmer", "plumber", "bodyguard", "mechanic", "boxer", "ballerina", "judge", "lawyer", "sculptor", "dentist", "detective", "therapist", "scientist", "astronaut", "veterinarian", "unemployed"],
+  Object: ["bicycle", "laptop", "guitar", "camera", "backpack", "phone", "book", "watch", "car", "wrecking ball", "microphone", "suitcase", "piano", "candle", "knife", "drum", "lightbulb", "wallet", "glasses", "trophy", "letter", "flag", "key", "map", "brush", "hammer", "trolley", "dart", "compass", "binoculars", "monocle", "tripod", "yoyo"],
+  Movie: ["titanic", "spiderman", "superman", "lion king", "the matrix", "frozen", "forrest gump", "shawshank redemption", "joker", "alvin and the chimpmunks", "wall-e", "the dark knight", "toy story", "lego movie", "Night at the Museum", "jumanji", "star wards", "godfather", "finding nemo", "the hunger games", "despicable me", "laid in america", "fight club", "terminator", "the shining", "the truman show", "hamilton", "inside out", "ratatouille", "inception", "scream", "madagacar"],
+  "TV Show": ["the office", "breaking bad", "doctor who", "squid game", "the walking dead", "big bang theory", "game of thrones", "friends", "rick and morty", "stranger things", "family guy", "the simpsons", "love island", "phineas and ferb", "the middle", "bluey", "peppa pig", "dexter", "the rookie", "one piece", "south park", "severance", "house", "shameless", "suits"],
+  Person: ["mr beast", "ludwig", "snoopy", "santa", "tooth fairy", "harry potter", "michael jackson", "usain bolt", "ronaldo", "einstein", "taylor swift", "neil armstrong", "peter griffin", "gordon ramsay", "darth vader", "spock", "squidward", "homer", "gandalf", "katniss everdeen", "tony stark", "kermit", "elmo", "spiderman", "batman", "super man", "rick astley", "drake", "kendrick", "averageharry", "steve jobs"],
+  Place: ["antarctica", "beach", "boat", "castle", "desert", "mountain", "restaurant", "school", "library", "moon", "space", "airport", "basement", "circus", "museum", "bus", "taxi", "camp", "prison", "court", "hospital", "hotel", "comedy club", "bar", "concert", "office", "attic", "alley", "underpass", "bunker", "factory", "aquarium", "zoo"],
+  Song: ["headlock", "never gonna give you up", "pretty girl", "skyfall", "blinding lights", "shake it off", "astronaut in the ocean", "bad guy", "watermelon sugar", "drivers license", "happy", "call me maybe", "hello", "firework", "all star", "old town road", "not like us", "sunflower", "uptown funk", "titanium", "roar", "shape of you", "sugar on my tongue", "party in the usa", "yale", "lovers rock", "YMCA", "dancing queen", "uptown girl", "smooth criminal", "africa", "we built this city", "we didn't start the fire", "everybody dance", "eye of the tiger", "surfin usa", "stayin alive", "mamma mia", "beat it", "kung fu fighting", "still standing", "hooked on a feeling"],
+  Game: ["minecraft", "fortnite", "among us", "league of legends", "chess", "monopoly", "poker", "fall guys", "animal crossing", "overwatch", "rocket league", "pokemon go", "peak", "clash of clans", "gta", "blackjack", "uno", "valorant", "rainbow six", "rock paper scissors", "bingo", "vrchat", "ARK", "Sea of Thieves", "NBA", "FIFA", "Connect 4", "Balatro", "It Takes Two", "Date everything", "Mario Kart", "red dead", "overcooked", "WWE", "Watch Dogs", "Liars Bar", "assasins creed", "gorilla tag", "papas pizzeria", "crab game", "skate"]
+};
 
 enum GameState {
   Home,
@@ -36,16 +48,22 @@ export type ChatMessage = {
 const stopWords = ["the", "is", "in", "and", "to", "a", "of", "it", "that", "i", "you", "he", "she", "they", "we", "on", "for", "with", "as", "was", "at", "by", "an"];
 
 const App = () => {
-  const [charades, setCharades] = useState<Record<string, string[]>>(initialCharades);
+  const [charades, setCharades] = useState<Record<string, string[]>>(() => {
+    const stored = localStorage.getItem("charades");
+    return stored ? JSON.parse(stored) : initialCharades;
+  });
   const [channel, setChannel] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatters, setChatters] = useState<ChatterRecord>({});
   const [previousWinner, setPreviousWinner] = useState<string | null>(null);
   const [charade, setCharade] = useState<{ category: string; word: string | null }>();
-  const [gameDetails, setGameDetails] = useState<{ round: number; totalRounds: number; }>({ round: 0, totalRounds: 10 });
+  const [gameDetails, setGameDetails] = useState<{ round: number; totalRounds: number; }>(() => {
+    const storedRounds = localStorage.getItem("rounds");
+    return { round: 0, totalRounds: storedRounds ? Number(storedRounds) : 10 };
+  });
   const [screen, setScreen] = useState<GameState>(GameState.Home);
 
-  const [cookies, setCookies] = useCookies(["user", "charades", "rounds"]);
+  const [cookies, setCookies] = useCookies(["user", "version"]);
 
   const userInputRef = useRef<HTMLInputElement | null>(null);
   const screenRef = useRef(screen);
@@ -60,11 +78,11 @@ const App = () => {
   }, [charade]);
 
   useEffect(() => {
-    setCookies("charades", charades, { path: "/" });
+    localStorage.setItem("charades", JSON.stringify(charades));
   }, [charades]);
 
   useEffect(() => {
-    setCookies("rounds", gameDetails.totalRounds, { path: "/" });
+    localStorage.setItem("rounds", String(gameDetails.totalRounds));
   }, [gameDetails.totalRounds]);
 
   const connectToChannel = (channelName: string) => {
@@ -120,9 +138,10 @@ const App = () => {
   const normalise = (text: string): string => {
     return text
       .toLowerCase()
+      .replaceAll(/[^a-zA-Z0-9\s]/g, "")
       .split(/\s+/)
       .filter(word => word && !stopWords.includes(word))
-      .join(" ");
+      .join("");
   }
 
   const getRandomWord = () => {
@@ -157,12 +176,18 @@ const App = () => {
     if (cookies.user && userInputRef.current) {
       userInputRef.current.value = cookies.user;
     }
-    if (cookies.charades) {
-      setCharades(cookies.charades);
+
+    if (cookies.version !== version) {
+      setCookies("version", version, { path: "/" });
+      if (changelog[version].askReset) {
+        if (confirm(`Chatterades has been updated to version ${version}!\n\nChanges:\n- ${changelog[version].changes.join("\n- ")}\n\nIt is recommended to reset your charades to avoid any issues, do you want to reset now? (Your custom charades will be lost, you can do this later)`)) {
+          setCharades(initialCharades);
+        }
+      } else {
+        alert(`Chatterades has been updated to version ${version}!\n\nChanges:\n- ${changelog[version].changes.join("\n- ")}`);
+      }
     }
-    if (cookies.rounds) {
-      setGameDetails((prev) => ({ ...prev, totalRounds: cookies.rounds }));
-    }
+
   }, []);
 
   return (
@@ -181,15 +206,20 @@ const App = () => {
               <details className="bg-gray-800 p-2 m-2 rounded">
                 <summary className="cursor-pointer select-none text-white font-medium">Settings</summary>
                 <div className="mt-2 flex gap-2 items-center text-center">
-                  <div className="flex gap-2 items-center">
-                    <p>Max Rounds:</p>
-                    <input
-                      type="number"
-                      min="1"
-                      value={gameDetails.totalRounds}
-                      onChange={(e) => setGameDetails((prev) => ({ ...prev, totalRounds: Number(e.target.value) }))}
-                      className="bg-gray-800 p-2 rounded border"
-                    />
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2 items-center">
+                      <p>Max Rounds:</p>
+                      <input
+                        type="number"
+                        min="1"
+                        value={gameDetails.totalRounds}
+                        onChange={(e) => setGameDetails((prev) => ({ ...prev, totalRounds: Number(e.target.value) }))}
+                        className="bg-gray-800 p-2 rounded border"
+                      />
+                    </div>
+                    <button onClick={() => setCharades(initialCharades)} className="!bg-red-600 !hover:bg-red-500 text-white p-2 rounded">
+                      Reset All Charades
+                    </button>
                   </div>
                   <CharadesEditor charades={charades} setCharades={setCharades} />
                 </div>
