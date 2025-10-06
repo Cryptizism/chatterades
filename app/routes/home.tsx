@@ -144,7 +144,7 @@ const App = () => {
         if (screenRef.current === GameState.Home) {
           setMessages((prevMessages) => [...prevMessages, { username, message, colour }]);
         } else if (screenRef.current === GameState.InGame) {
-          if (charadeRef.current && charadeRef.current.word /*&& matchCharade(message)*/) {
+          if (charadeRef.current && charadeRef.current.word && matchCharade(message)) {
             scorePoint(username);
           }
         }
