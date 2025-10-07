@@ -86,7 +86,7 @@ const App = () => {
   const gameTypeRef = useRef(gameType)
   const guessedRef = useRef(guessed);
 
-  const roundTime = 15;
+  const roundTime = 5;
 
   useEffect(() => {
     gameTypeRef.current = gameType;
@@ -177,16 +177,17 @@ const App = () => {
         winnerNextRound(username, 1);
         return;
       case GameType.Every:
-        if(guessedRef.current.includes(username)) return;
+        if(guessedRef.current.includes(username)) {return};
         setGuessed(prev => [...prev, username])
         if (gameDetails.guessTime){
           const timeInSecondsElapsed = (Date.now() - gameDetails.guessTime) / 1000;
           const score = roundTime * 100  * (1 - Math.log(1 + timeInSecondsElapsed) / Math.log(1 + roundTime));
           updateChatterScore(username, Math.floor(score));
         } else {
-          gameDetails.guessTime = Date.now();
+          setGameDetails((prev) => ({ ...prev, guessTime: Date.now() }));
           setTimeout(() => {
-            gameDetails.guessTime = null;
+            setGameDetails((prev) => ({ ...prev, guessTime: null }));
+            setGuessed([])
             winnerNextRound(username, roundTime * 100);
           }, roundTime * 1000);
         }
@@ -203,18 +204,25 @@ const App = () => {
   }
 
   const matchCharade = (message: string) => {
-    if (!charadeRef.current || !charadeRef.current.word) return false;
+    if (!charadeRef.current || !charadeRef.current.word)  {
+      return false;
+    };
 
     const normalisedCharade = normalise(charadeRef.current.word);
     const normalisedMessage = normalise(message);
 
-    if (normalisedCharade.length === 0 || normalisedMessage.length === 0) return false;
+    console.log("normalisedCharade: " + normalisedCharade)
+    console.log("normalisedMessage: " + normalisedMessage)
+
+    if (normalisedCharade.length === 0 || normalisedMessage.length === 0) {
+      return false
+    };
 
     if (normalisedMessage.includes(normalisedCharade)){
       return true;
     }
 
-    return fuzzySubstringMatch(normalisedMessage, normalisedCharade, 4);
+    return fuzzySubstringMatch(normalisedMessage, normalisedCharade, 2);
   };
 
   const normalise = (text: string): string => {
