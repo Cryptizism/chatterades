@@ -85,8 +85,13 @@ const App = () => {
   const charadeRef = useRef(charade);
   const gameTypeRef = useRef(gameType)
   const guessedRef = useRef(guessed);
+  const gameDetailsRef = useRef(gameDetails)
 
   const roundTime = 5;
+
+  useEffect(() => {
+    gameDetailsRef.current = gameDetails;
+  }, [gameDetails])
 
   useEffect(() => {
     gameTypeRef.current = gameType;
@@ -179,8 +184,8 @@ const App = () => {
       case GameType.Every:
         if(guessedRef.current.includes(username)) {return};
         setGuessed(prev => [...prev, username])
-        if (gameDetails.guessTime){
-          const timeInSecondsElapsed = (Date.now() - gameDetails.guessTime) / 1000;
+        if (gameDetailsRef.current && gameDetailsRef.current.guessTime){
+          const timeInSecondsElapsed = (Date.now() - gameDetailsRef.current.guessTime) / 1000;
           const score = roundTime * 100  * (1 - Math.log(1 + timeInSecondsElapsed) / Math.log(1 + roundTime));
           updateChatterScore(username, Math.floor(score));
         } else {
@@ -210,9 +215,6 @@ const App = () => {
 
     const normalisedCharade = normalise(charadeRef.current.word);
     const normalisedMessage = normalise(message);
-
-    console.log("normalisedCharade: " + normalisedCharade)
-    console.log("normalisedMessage: " + normalisedMessage)
 
     if (normalisedCharade.length === 0 || normalisedMessage.length === 0) {
       return false
