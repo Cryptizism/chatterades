@@ -5,8 +5,12 @@ import ChatBox from "~/components/chatbox";
 import CharadesEditor from "~/components/charades-editor";
 import levenshtein from "js-levenshtein"
 
-const version = "1.2.0";
+const version = "1.3.0";
 const changelog = {
+  "1.3.0": {
+    changes: ["Fixed race condition with winning", "Fixed tolerance answers"],
+    askReset: false
+  },
   "1.2.0": {
     changes : ["Added game types", "Added better matching for misspellings"],
     askReset: false
@@ -57,6 +61,19 @@ export type ChatMessage = {
 
 const stopWords = ["the", "is", "in", "and", "to", "a", "of", "it", "that", "i", "you", "he", "she", "they", "we", "on", "for", "with", "as", "was", "at", "by", "an"];
 
+function useSyncedState<T>(initial: T | (() => T)) {
+  const [state, setState] = useState<T>(initial);
+  const ref = useRef(state);
+  const setSyncedState = (value: T | ((prev: T) => T)) => {
+    setState((prev) => {
+      const next = typeof value === "function" ? (value as (prev: T) => T)(prev) : value;
+      ref.current = next;
+      return next;
+    });
+  };
+  return [state, setSyncedState, ref] as const;
+}
+
 const App = () => {
   const [charades, setCharades] = useState<Record<string, string[]>>(() => {
     const stored = localStorage.getItem("charades");
@@ -66,49 +83,28 @@ const App = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatters, setChatters] = useState<ChatterRecord>({});
   const [previousWinner, setPreviousWinner] = useState<string | null>(null);
-  const [charade, setCharade] = useState<{ category: string; word: string | null }>();
-  const [gameDetails, setGameDetails] = useState<{ round: number; totalRounds: number; guessTime?: number | null }>(() => {
+  const [charade, setCharade, charadeRef] = useSyncedState<{ category: string; word: string | null } | undefined>(undefined);
+  const [gameDetails, setGameDetails, gameDetailsRef] = useSyncedState<{ round: number; totalRounds: number; guessTime?: number | null }>(() => {
     const storedRounds = localStorage.getItem("rounds");
     return { round: 0, totalRounds: storedRounds ? Number(storedRounds) : 10 };
   });
-  const [screen, setScreen] = useState<GameState>(GameState.Home);
-  const [gameType, setGameType] = useState<GameType>(() => {
+  const [screen, setScreen, screenRef] = useSyncedState<GameState>(GameState.Home);
+  const [gameType, setGameType, gameTypeRef] = useSyncedState<GameType>(() => {
     const storedGameType = Number(localStorage.getItem("gameType"));
     return storedGameType !== null ? storedGameType : GameType.Every;
   });
-  const [guessed, setGuessed] = useState<String[]>([]);
+  const [guessed, setGuessed, guessedRef] = useSyncedState<String[]>([]);
 
   const [cookies, setCookies] = useCookies(["user", "version"]);
 
   const userInputRef = useRef<HTMLInputElement | null>(null);
-  const screenRef = useRef(screen);
-  const charadeRef = useRef(charade);
-  const gameTypeRef = useRef(gameType)
-  const guessedRef = useRef(guessed);
-  const gameDetailsRef = useRef(gameDetails)
+  const staggerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const roundTime = 5;
 
   useEffect(() => {
-    gameDetailsRef.current = gameDetails;
-  }, [gameDetails])
-
-  useEffect(() => {
-    gameTypeRef.current = gameType;
     localStorage.setItem("gameType", String(Number(gameType)))
   }, [gameType])
-
-  useEffect(() => {
-    guessedRef.current = guessed;
-  }, [guessed])
-
-  useEffect(() => {
-    screenRef.current = screen;
-  }, [screen]);
-
-  useEffect(() => {
-    charadeRef.current = charade;
-  }, [charade]);
 
   useEffect(() => {
     localStorage.setItem("charades", JSON.stringify(charades));
@@ -169,8 +165,8 @@ const App = () => {
 
   const winnerNextRound = (username: string, score: number) => {
     updateChatterScore(username, score)
-    setScreen(prev => GameState.NextRound);
-    setPreviousWinner(prev => username);
+    setScreen(GameState.NextRound);
+    setPreviousWinner(username);
     const audio = new Audio("/correct.mp3");
     audio.volume = 0.5;
     audio.play();
@@ -190,7 +186,8 @@ const App = () => {
           updateChatterScore(username, Math.floor(score));
         } else {
           setGameDetails((prev) => ({ ...prev, guessTime: Date.now() }));
-          setTimeout(() => {
+          staggerTimeoutRef.current = setTimeout(() => {
+            staggerTimeoutRef.current = null;
             setGameDetails((prev) => ({ ...prev, guessTime: null }));
             setGuessed([])
             winnerNextRound(username, roundTime * 100);
@@ -206,6 +203,10 @@ const App = () => {
       if (levenshtein(window, charade) <= threshold) return true;
     }
     return false;
+  }
+
+  const fuzzyThreshold = (charadeLength: number) => {
+    return Math.floor(charadeLength/4);
   }
 
   const matchCharade = (message: string) => {
@@ -224,7 +225,7 @@ const App = () => {
       return true;
     }
 
-    return fuzzySubstringMatch(normalisedMessage, normalisedCharade, 2);
+    return fuzzySubstringMatch(normalisedMessage, normalisedCharade, fuzzyThreshold(normalisedCharade.length));
   };
 
   const normalise = (text: string): string => {
@@ -244,6 +245,16 @@ const App = () => {
     return { category, word };
   }
 
+  const rerollWord = () => {
+    if (staggerTimeoutRef.current) {
+      clearTimeout(staggerTimeoutRef.current);
+      staggerTimeoutRef.current = null;
+    }
+    setGuessed([]);
+    setGameDetails((prev) => ({ ...prev, guessTime: null }));
+    setCharade(getRandomWord());
+  }
+
   const nextRound = () => {
     if (gameDetails.round >= gameDetails.totalRounds) {
       setScreen(GameState.GameOver);
@@ -259,8 +270,8 @@ const App = () => {
     const user = userInputRef.current.value;
     if (user) {
       setCookies("user", user, { path: "/" });
-      setChannel(user);
-      connectToChannel(user);
+      setChannel(user.trim());
+      connectToChannel(user.trim());
     }
   };
 
@@ -381,9 +392,7 @@ const App = () => {
           <h2 className="text-2xl text-center">Round {gameDetails.round} of {gameDetails.totalRounds}</h2>
           <div className="text-center mt-4">
             <h3 className="text-3xl mb-4">Word: {charade?.word}</h3>
-            <button onClick={() => {
-              setCharade(getRandomWord());
-            }} className="bg-gray-700 text-white p-2 rounded mb-4">
+            <button onClick={rerollWord} className="bg-gray-700 text-white p-2 rounded mb-4">
               Reroll Word
             </button>
             <div className="text-gray-400 font-light mb-4">
